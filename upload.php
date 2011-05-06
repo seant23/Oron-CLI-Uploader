@@ -31,7 +31,7 @@ class Uploader {
 		$postdata = "login={$this->username}&password={$this->password}&op=login&redirect=%2F%3Fop%3Dmy_account&rand=";
 				
 		$ch = curl_init(); 
-		curl_setopt ($ch, CURLOPT_URL, "http://oron.com"); 
+		curl_setopt ($ch, CURLOPT_URL, "http://oron.com/login");
 		curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE); 
 		curl_setopt ($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.107 Safari/534.13"); 
 		curl_setopt ($ch, CURLOPT_TIMEOUT, 60); 
@@ -42,7 +42,7 @@ class Uploader {
 		curl_setopt ($ch, CURLOPT_POSTFIELDS, $postdata); 
 		curl_setopt ($ch, CURLOPT_POST, 1); 
 		$response = curl_exec ($ch); 
-								
+
 		if(strpos($response, 'Incorrect Login or Password')) {
 			CLI::finishMSG("FAILED", CLI::RED);
 			$this->error('Incorrect Login or Password');
@@ -57,12 +57,11 @@ class Uploader {
 	public function getSessionDetails() {
 		CLI::startMSG("Getting Session Info:");
 		
-				
 		$ch = curl_init("http://oron.com/");
     	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1); 
 		curl_setopt ($ch, CURLOPT_COOKIEFILE, "cookies/{$this->username}.txt"); 		
 		$response = curl_exec ($ch); 
-		
+
 		preg_match_all('<input type="hidden" name="(.*)" value="(.*)">',$response, $out, PREG_SET_ORDER);
 		
 		foreach($out as $detail) {
@@ -75,11 +74,15 @@ class Uploader {
 	public function upload() {
 		CLI::startMSG("Uploading:");
 		
-		
-		
 		//Remove Bad Vars
 		unset($this->sessionDetails['utype']);
 		unset($this->sessionDetails['mass_upload']);
+		unset($this->sessionDetails['skip_step']);
+		unset($this->sessionDetails['act_pass']);
+		unset($this->sessionDetails['verification_code']);
+		unset($this->sessionDetails['oron_pin']);
+		unset($this->sessionDetails['progress_id']);
+		unset($this->sessionDetails['x_progress_id']);
 		
 		//Add Good ones
 		$this->sessionDetails['upload_type'] = 'file';
@@ -90,14 +93,14 @@ class Uploader {
 		$this->sessionDetails['link_rcpt'] = '';
 		$this->sessionDetails['link_pass'] = '';
 		$this->sessionDetails['submit_btn'] = ' Upload! ';
-					
+
 		
 		$ch = curl_init( $this->sessionDetails['srv_tmp_url'] . "/upload/" . $this->sessionDetails['srv_id']);
 		curl_setopt ($ch, CURLOPT_POSTFIELDS, $this->sessionDetails); 
     	curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1); 
 		curl_setopt ($ch, CURLOPT_COOKIEFILE, "cookies/{$this->username}.txt"); 		
 		$response = curl_exec ($ch); 
-				
+
 		CLI::finishMSG("OK");
 	}
 	
